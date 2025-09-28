@@ -1,0 +1,163 @@
+version: "3.8"
+
+services:
+  # Vertical FL Orchestrator
+  vertical-fl-orchestrator:
+    build: .
+    container_name: vertical-fl-orchestrator
+    ports:
+      - "8080:8080"
+    environment:
+      - FLASK_ENV=production
+      - NUM_ORGANIZATIONS=8
+      - TOTAL_REWARD_POOL=1000.0
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+    networks:
+      - vertical-fl-network
+    command: python run_vertical_revolution.py --num-organizations 8 --num-rounds 20
+
+  # Hospital A - Medical Images + Clinical
+  hospital-a:
+    build: .
+    container_name: hospital-a
+    environment:
+      - ORG_ID=hospital_a
+      - DATA_MODALITIES=images,clinical
+      - DATA_QUALITY=0.92
+    volumes:
+      - ./data/hospital_a:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Hospital B - Medical Images + Clinical
+  hospital-b:
+    build: .
+    container_name: hospital-b
+    environment:
+      - ORG_ID=hospital_b
+      - DATA_MODALITIES=images,clinical
+      - DATA_QUALITY=0.88
+    volumes:
+      - ./data/hospital_b:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Clinic A - Clinical + Medications
+  clinic-a:
+    build: .
+    container_name: clinic-a
+    environment:
+      - ORG_ID=clinic_a
+      - DATA_MODALITIES=clinical,medications
+      - DATA_QUALITY=0.85
+    volumes:
+      - ./data/clinic_a:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Clinic B - Clinical + Medications
+  clinic-b:
+    build: .
+    container_name: clinic-b
+    environment:
+      - ORG_ID=clinic_b
+      - DATA_MODALITIES=clinical,medications
+      - DATA_QUALITY=0.82
+    volumes:
+      - ./data/clinic_b:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Insurance A - Demographics
+  insurance-a:
+    build: .
+    container_name: insurance-a
+    environment:
+      - ORG_ID=insurance_a
+      - DATA_MODALITIES=demographics
+      - DATA_QUALITY=0.78
+    volumes:
+      - ./data/insurance_a:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Insurance B - Demographics
+  insurance-b:
+    build: .
+    container_name: insurance-b
+    environment:
+      - ORG_ID=insurance_b
+      - DATA_MODALITIES=demographics
+      - DATA_QUALITY=0.75
+    volumes:
+      - ./data/insurance_b:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Research Center A - Genomics
+  research-a:
+    build: .
+    container_name: research-a
+    environment:
+      - ORG_ID=research_a
+      - DATA_MODALITIES=genomics
+      - DATA_QUALITY=0.96
+    volumes:
+      - ./data/research_a:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Research Center B - Genomics
+  research-b:
+    build: .
+    container_name: research-b
+    environment:
+      - ORG_ID=research_b
+      - DATA_MODALITIES=genomics
+      - DATA_QUALITY=0.94
+    volumes:
+      - ./data/research_b:/app/data
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+  # Monitoring Dashboard
+  monitoring:
+    build: .
+    container_name: monitoring-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - DASHBOARD_PORT=3000
+    volumes:
+      - ./results:/app/results
+    networks:
+      - vertical-fl-network
+    depends_on:
+      - vertical-fl-orchestrator
+
+networks:
+  vertical-fl-network:
+    driver: bridge
+
+volumes:
+  data:
+  results:
+
